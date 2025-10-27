@@ -1,4 +1,4 @@
-package examples.canine;
+1qpackage examples.canine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
