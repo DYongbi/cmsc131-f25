@@ -1,3 +1,5 @@
+package Assignment;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -10,7 +12,6 @@ public class AccountTest {
 
     @BeforeEach
     void setUp() {
-        
         account = new Account("A1001", "John Doe", "Checking", 500.0);
     }
 

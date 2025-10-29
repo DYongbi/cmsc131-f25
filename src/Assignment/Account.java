@@ -1,3 +1,11 @@
+/** TODO list
+ * 
+ * Consider using an enum for accountType
+ * 
+ * Missing phase 2 features. Be sure to add these and complete phase 3 by end of day 29 October.
+ */
+package Assignment;
+
 public class Account {
 private String accountID;
 private String ownerName;
@@ -56,4 +64,5 @@ return "Account{" +
 ", Type='" + accountType + '\'' +
 ", Balance=" + balance +
 '}';
+}
 }
