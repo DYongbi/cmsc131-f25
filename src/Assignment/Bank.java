@@ -1,3 +1,13 @@
+/** TODO list
+ * 
+ * Don't throw if capacity is exceeded in add method. Instead have add return a boolean, and make it false if capacity is exceeded.
+ * 
+ * Change the return value of find from Account to int
+ * 
+ * Your methods need javadocs
+ */
+package Assignment;
+
 import java.util.Arrays;
 
 public class Bank {
