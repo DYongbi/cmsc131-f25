@@ -55,7 +55,35 @@ return Arrays.copyOf(temp, foundCount);
 }
 
 
-public void loadAccounts() {
-System.out.println("The loadAccounts method will be implemented in a later phase to read data.");
+public void loadAccounts(String filename) {
+try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+String line;
+while ((line = br.readLine()) != null) {
+if (line.trim().isEmpty()) continue;
+Account acc = Account.fromCSV(line);
+add(acc);
+}
+} catch (IOException e) {
+throw new RuntimeException("Error loading accounts: " + e.getMessage());
+}
+}
+
+// Write accounts to CSV file (append mode)
+public boolean writeAccounts(String filename) {
+boolean result = true;
+File file = new File(filename);
+
+try (FileWriter fw = new FileWriter(file, true); // append = true
+PrintWriter pw = new PrintWriter(fw)) {
+
+for (int i = 0; i < count; i++) {
+pw.println(accounts[i].toCSV());
+}
+
+} catch (IOException e) {
+e.printStackTrace();
+result = false;
+}
+return result;
 }
 }
