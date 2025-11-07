@@ -1,120 +1,109 @@
-public class Account {
-private String accountID;
-private String ownerName;
-private double balance;
-private String accountType;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
-public Account(String accountID, String ownerName, String accountType, double balance) {
-// Validate account ID
-if (accountID == null || accountID.isEmpty()) {
-throw new IllegalArgumentException("Account ID must not be empty."); // || this call or operator
-}
+public abstract class Account {
+    protected String accountID;
+    protected String ownerName;
+    protected double balance;
+    protected String accountType;
 
-// Validate owner name
-if (ownerName == null || ownerName.isEmpty()) {
-throw new IllegalArgumentException("Owner name must not be empty.");
-}
+    public Account(String accountID, String ownerName, String accountType, double balance) {
+        if (accountID == null || accountID.isEmpty())
+            throw new IllegalArgumentException("Account ID must not be empty.");
+        if (ownerName == null || ownerName.isEmpty())
+            throw new IllegalArgumentException("Owner name must not be empty.");
+        if (balance < 0)
+            throw new IllegalArgumentException("Balance cannot be negative.");
 
-// Validate account type
-if (!accountType.equalsIgnoreCase("Checking") && !accountType.equalsIgnoreCase("Savings")) {
-throw new IllegalArgumentException("Account type must be 'Checking' or 'Savings'.");
-}
+        this.accountID = accountID;
+        this.ownerName = ownerName;
+        this.accountType = accountType;
+        this.balance = balance;
+    }
 
-// Validate balance
-if (balance < 0) {
-throw new IllegalArgumentException("Balance cannot be negative.");
-}
+    public abstract void deposit(double amount);
+    public abstract void withdraw(double amount);
 
-// Assign fields after validation
-this.accountID = accountID;
-this.ownerName = ownerName;
-this.accountType = accountType;
-this.balance = balance;
-}
+    public String getAccountID() { return accountID; }
+    public String getOwnerName() { return ownerName; }
+    public double getBalance() { return balance; }
+    public String getAccountType() { return accountType; }
 
-public String getAccountID() {
-return accountID;
-}
+    public String toCSV() {
+        return accountType + "," + accountID + "," + ownerName + "," + balance;
+    }
 
-public String getOwnerName() {
-return ownerName;
-}
+    public static Account fromCSV(String line) {
+        String[] parts = line.split(",");
+        if (parts.length != 4)
+            throw new IllegalArgumentException("Invalid CSV format: " + line);
 
-public double getBalance() {
-return balance;
-}
+        String type = parts[0].trim();
+        String id = parts[1].trim();
+        String name = parts[2].trim();
+        double bal = Double.parseDouble(parts[3].trim());
 
-public String getAccountType() {
-return accountType;
-}
+        if (type.equalsIgnoreCase("Checking"))
+            return new CheckingAccount(id, name, bal);
+        else if (type.equalsIgnoreCase("Savings"))
+            return new SavingsAccount(id, name, bal);
+        else
+            throw new IllegalArgumentException("Unknown account type: " + type);
+    }
 
-@Override
-public String toString() {
-return "Account{" +
-"ID='" + accountID + '\'' +
-", Owner='" + ownerName + '\'' +
-", Type='" + accountType + '\'' +
-", Balance=" + balance +
-'}';
-}
-// Factory method to create Account from CSV line
-public static Account fromCSV(String line) {
-String[] parts = line.split(",");
-if (parts.length != 4) {
-throw new IllegalArgumentException("Invalid CSV format: " + line);
-}
+    @Override
+    public String toString() {
+        return accountType + " Account {" +
+                "ID='" + accountID + '\'' +
+                ", Owner='" + ownerName + '\'' +
+                ", Balance=" + balance +
+                '}';
+    }
 
-String accountType = parts[0].trim();
-String accountID = parts[1].trim();
-String ownerName = parts[2].trim();
-double balance = Double.parseDouble(parts[3].trim());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Account)) return false;
+        Account account = (Account) o;
+        return Objects.equals(accountID, account.accountID);
+    }
 
-return new Account(accountID, ownerName, accountType, balance);
-}
+    @Override
+    public int hashCode() {
+        return Objects.hash(accountID);
+    }
 
-// Convert Account to CSV line
-public String toCSV() {
-return accountType + "," + accountID + "," + ownerName + "," + balance;
-}
-
-public String getAccountID() {
-return accountID;
-}
-
-public String getOwnerName() {
-return ownerName;
-}
-
-public double getBalance() {
-return balance;
-}
-
-public String getAccountType() {
-return accountType;
-}
-
-@Override
-public String toString() {
-return "Account{" +
-"ID='" + accountID + '\'' +
-", Owner='" + ownerName + '\'' +
-", Type='" + accountType + '\'' +
-", Balance=" + balance +
-'}';
-}
-
-@Override
-public boolean equals(Object o) {
-if (this == o) return true;
-if (!(o instanceof Account)) return false;
-Account account = (Account) o;
-return Objects.equals(accountID, account.accountID);
-}
-
-@Override
-public int hashCode() {
-return Objects.hash(accountID);
-}
+    //
+    public static void main(String[] args) {
+        System.out.println("Classes loaded successfully.");
+    }
 }
 
 
+// Transaction class
+
+abstract class Transaction {
+    protected String transactionID;
+    protected Account account;
+    protected double amount;
+    protected LocalDateTime timestamp;
+
+    public Transaction(String transactionID, Account account, double amount) {
+        this.transactionID = transactionID;
+        this.account = account;
+        this.amount = amount;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public abstract void process();
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "ID='" + transactionID + '\'' +
+                ", AccountID='" + account.getAccountID() + '\'' +
+                ", Amount=" + amount +
+                ", Time=" + timestamp +
+                '}';
+    }
+}

@@ -2,7 +2,7 @@ public class Main {
     public static void main(String[] args) {
         Bank bank = new Bank();
 
-        Create sample accounts
+        //Create sample accounts
         Account acc1 = new CheckingAccount("A001", "Michael Jackson", 1200.50);
         Account acc2 = new SavingsAccount("A002", "John Smith", 2000.00);
         Account acc3 = new SavingsAccount("A003", "Michael Prosper", 500.75);

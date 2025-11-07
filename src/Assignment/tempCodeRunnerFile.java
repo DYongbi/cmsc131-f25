@@ -1,52 +1,109 @@
+// import java.time.LocalDateTime;
+// import java.util.Objects;
 
-// import org.junit.jupiter.api.*;
-// import java.io.File;
+// public abstract class Account {
+//     protected String accountID;
+//     protected String ownerName;
+//     protected double balance;
+//     protected String accountType;
 
-// import static org.junit.jupiter.api.Assertions.*;
+//     public Account(String accountID, String ownerName, String accountType, double balance) {
+//         if (accountID == null || accountID.isEmpty())
+//             throw new IllegalArgumentException("Account ID must not be empty.");
+//         if (ownerName == null || ownerName.isEmpty())
+//             throw new IllegalArgumentException("Owner name must not be empty.");
+//         if (balance < 0)
+//             throw new IllegalArgumentException("Balance cannot be negative.");
 
-// public class BankTest {
+//         this.accountID = accountID;
+//         this.ownerName = ownerName;
+//         this.accountType = accountType;
+//         this.balance = balance;
+//     }
 
-// private Bank bank;
-// private static final String TEST_FILE = "test_accounts.csv";
+//     public abstract void deposit(double amount);
+//     public abstract void withdraw(double amount);
 
-// @BeforeEach
-// void setUp() {
-// bank = new Bank(5);
-// new File(TEST_FILE).delete(); // clean old test file
+//     public String getAccountID() { return accountID; }
+//     public String getOwnerName() { return ownerName; }
+//     public double getBalance() { return balance; }
+//     public String getAccountType() { return accountType; }
+
+//     public String toCSV() {
+//         return accountType + "," + accountID + "," + ownerName + "," + balance;
+//     }
+
+//     public static Account fromCSV(String line) {
+//         String[] parts = line.split(",");
+//         if (parts.length != 4)
+//             throw new IllegalArgumentException("Invalid CSV format: " + line);
+
+//         String type = parts[0].trim();
+//         String id = parts[1].trim();
+//         String name = parts[2].trim();
+//         double bal = Double.parseDouble(parts[3].trim());
+
+//         if (type.equalsIgnoreCase("Checking"))
+//             return new CheckingAccount(id, name, bal);
+//         else if (type.equalsIgnoreCase("Savings"))
+//             return new SavingsAccount(id, name, bal);
+//         else
+//             throw new IllegalArgumentException("Unknown account type: " + type);
+//     }
+
+//     @Override
+//     public String toString() {
+//         return accountType + " Account {" +
+//                 "ID='" + accountID + '\'' +
+//                 ", Owner='" + ownerName + '\'' +
+//                 ", Balance=" + balance +
+//                 '}';
+//     }
+
+//     @Override
+//     public boolean equals(Object o) {
+//         if (this == o) return true;
+//         if (!(o instanceof Account)) return false;
+//         Account account = (Account) o;
+//         return Objects.equals(accountID, account.accountID);
+//     }
+
+//     @Override
+//     public int hashCode() {
+//         return Objects.hash(accountID);
+//     }
+
+//     // --- ADD THIS TO MAKE IT RUN ---
+//     public static void main(String[] args) {
+//         System.out.println("Classes loaded successfully.");
+//     }
 // }
 
-// @Test
-// void testWriteAccounts() {
-// Account acc1 = new Account("T001", "Tester One", "Checking", 1500.0);
-// Account acc2 = new Account("T002", "Tester Two", "Savings", 2200.0);
 
-// bank.add(acc1);
-// bank.add(acc2);
+// // Transaction class
 
-// boolean result = bank.writeAccounts(TEST_FILE);
-// assertTrue(result, "File writing should succeed");
+// abstract class Transaction {
+//     protected String transactionID;
+//     protected Account account;
+//     protected double amount;
+//     protected LocalDateTime timestamp;
 
-// File file = new File(TEST_FILE);
-// assertTrue(file.exists(), "CSV file should be created");
-// assertTrue(file.length() > 0, "CSV file should not be empty");
-// }
+//     public Transaction(String transactionID, Account account, double amount) {
+//         this.transactionID = transactionID;
+//         this.account = account;
+//         this.amount = amount;
+//         this.timestamp = LocalDateTime.now();
+//     }
 
-// @Test
-// void testLoadAccounts() {
-// // Write first
-// testWriteAccounts();
+//     public abstract void process();
 
-// // Now read back into a new Bank
-// Bank newBank = new Bank(5);
-// newBank.loadAccounts(TEST_FILE);
-
-// assertEquals(2, newBank.getCount(), "Should load 2 accounts");
-// assertNotNull(newBank.find("T001"), "Account T001 should exist");
-// assertNotNull(newBank.find("T002"), "Account T002 should exist");
-// }
-
-// @AfterEach
-// void tearDown() {
-// new File(TEST_FILE).delete(); // clean after test
-// }
+//     @Override
+//     public String toString() {
+//         return "Transaction{" +
+//                 "ID='" + transactionID + '\'' +
+//                 ", AccountID='" + account.getAccountID() + '\'' +
+//                 ", Amount=" + amount +
+//                 ", Time=" + timestamp +
+//                 '}';
+//     }
 // }

@@ -1,89 +1,88 @@
-import java.util.Arrays;
+package projects.Bank;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Bank {
 
-private Account[] accounts;
-private int count;
-private static final int DEFAULT_CAPACITY = 100;
+    private List<Account> accounts;
+    private final int newAccountsIncrement = 100;
 
+    public Bank() {
+        accounts = new ArrayList<>(newAccountsIncrement);
+    }
 
-public Bank() {
-this.accounts = new Account[DEFAULT_CAPACITY];
-this.count = 0;
-}
+    public boolean add(Account acct) {
+        if (acct == null) {
+            throw new IllegalArgumentException("account must not be null.");
+        }
+        if (find(acct.getID()) == -1) {
+            accounts.add(acct);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    public int find(String accountID) {
+        if (accountID == null) {
+            throw new IllegalArgumentException("accountID must not be null.");
+        }
+        for (int i = 0; i < accounts.size(); i++) {
+            if (accounts.get(i).getID().equals(accountID)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-public Bank(int size) {
-this.accounts = new Account[size];
-this.count = 0;
-}
+    public int getCount() {
+        return accounts.size();
+    }
 
+    public boolean loadAccounts(String filename) {
+        boolean result = true;
+        File inputFile = new File(filename);
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Account account = Account.make(line);
+                add(account);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = false;
+        }
+        return result;
+    }
 
-public void add(Account account) {
-if (count >= accounts.length) {
-throw new IllegalStateException("Bank account list is full.");
-}
-accounts[count++] = account;
-}
+    public boolean writeAccounts(String filename) {
+        File file = new File(filename);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Account account : accounts) {
+                writer.write(account.toCSV());
+                writer.newLine();
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    public Account[] getAccounts() {
+        return accounts.toArray(new Account[0]);
+    }
 
-public Account find(String accountID) {
-for (int i = 0; i < count; i++) {
-if (accounts[i].getAccountID().equals(accountID)) {
-return accounts[i];
-}
-}
-return null;
-}
+    public int processTransactions(String filename) {
+        throw new UnsupportedOperationException("Student must implement.");
+    }
 
-
-public int getCount() {
-return count;
-}
-
-public Account[] findAccountsByOwner(String ownerName) {
-Account[] temp = new Account[count];
-int foundCount = 0;
-
-for (int i = 0; i < count; i++) {
-if (accounts[i].getOwnerName().equalsIgnoreCase(ownerName)) {
-temp[foundCount++] = accounts[i];
-}
-}
-
-return Arrays.copyOf(temp, foundCount);
-}
-
-
-public void loadAccounts(String filename) {
-try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-String line;
-while ((line = br.readLine()) != null) {
-if (line.trim().isEmpty()) continue;
-Account acc = Account.fromCSV(line);
-add(acc);
-}
-} catch (IOException e) {
-throw new RuntimeException("Error loading accounts: " + e.getMessage());
-}
-}
-
-// Write accounts to CSV file (append mode)
-public boolean writeAccounts(String filename) {
-boolean result = true;
-File file = new File(filename);
-
-try (FileWriter fw = new FileWriter(file, true); // append = true
-PrintWriter pw = new PrintWriter(fw)) {
-
-for (int i = 0; i < count; i++) {
-pw.println(accounts[i].toCSV());
-}
-
-} catch (IOException e) {
-e.printStackTrace();
-result = false;
-}
-return result;
-}
+    public List<Account> findAccountsByOwner(String ownerName) {
+        return accounts.stream()
+                .filter(acc -> acc.getOwnerName().equalsIgnoreCase(ownerName))
+                .collect(Collectors.toList());
+    }
 }
