@@ -10,5 +10,4 @@ public class CheckingAccount extends Account {
     public AccountType getType() {
         return AccountType.CHECKING;
     }
-
 }

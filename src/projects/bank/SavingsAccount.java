@@ -10,5 +10,4 @@ public class SavingsAccount extends Account {
     public AccountType getType() {
         return AccountType.SAVINGS;
     }
-
 }

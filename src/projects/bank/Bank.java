@@ -16,134 +16,68 @@ public class Bank {
         accounts = new Account[newAccountsIncrement];
     }
 
-    /**
-     * Add an account to this Bank.
-     * @param acct - Account to add.
-     * @return - true if successful, false if unsuccessful.
-     * @throws IllegalArgumentException - If acct is null.
-     */
     public boolean add(Account acct) {
-        if (acct == null) {
-            throw new IllegalArgumentException("account must not be null.");
-        }
+        if (acct == null) throw new IllegalArgumentException("account must not be null");
         if (find(acct.getID()) == -1) {
-            try {
-                accounts[idxNextAccount] = acct;
-            } catch(ArrayIndexOutOfBoundsException e) {
-                Account[] accountsExtended = new Account[
-                    accounts.length + newAccountsIncrement
-                ];
-                for (int idx = 0; idx < accounts.length; idx++) {
-                    accountsExtended[idx] = accounts[idx];
-                }
-                accountsExtended[idxNextAccount] = acct;
-                accounts = accountsExtended;
+            if (idxNextAccount >= accounts.length) {
+                Account[] newAccounts = new Account[accounts.length + newAccountsIncrement];
+                System.arraycopy(accounts, 0, newAccounts, 0, accounts.length);
+                accounts = newAccounts;
             }
-            idxNextAccount++;
+            accounts[idxNextAccount++] = acct;
             return true;
-        } else {
-            return false;
         }
-
+        return false;
     }
 
-    /**
-     * Find an account in this Bank using its unique ID.
-     * @param accountID - Unique ID.
-     * @return - Reference to account in this Bank, or -1 if no match.
-     * @throws IllegalArgumentException if accountID is null.
-     */
     public int find(String accountID) {
-        if (accountID == null) {
-            throw new IllegalArgumentException("accountID must not be null.");
-        }
-        for (int idxAcct = 0; idxAcct < idxNextAccount; idxAcct++) {
-            if (accounts[idxAcct].getID().equals(accountID)) {
-                return idxAcct;
-            }
+        if (accountID == null) throw new IllegalArgumentException("accountID must not be null");
+        for (int i = 0; i < idxNextAccount; i++) {
+            if (accounts[i].getID().equals(accountID)) return i;
         }
         return -1;
     }
 
-    /**
-     * @return - Number of accounts in this Bank.
-     */
-    public int getCount() {
-        return idxNextAccount;
-    }
+    public int getCount() { return idxNextAccount; }
+    public Account[] getAccounts() { return accounts; }
 
-    /**
-     * Load accounts into this Bank from a CSV file. 
-     * 
-     * Assumes each row follows the format savings,wz240833,Anna Gomez,8111.00
-     * @param filename - Name of source CSV file.
-     * @return - {@code true} if and only if the operation is successful
-     */
     public boolean loadAccounts(String filename) {
         boolean result = true;
-        File inputFile = new File(filename);
-        Scanner scan;
-        try {
-            scan = new Scanner(inputFile);
+        try (Scanner scan = new Scanner(new File(filename))) {
             while (scan.hasNextLine()) {
                 String csvString = scan.nextLine();
                 Account account = Account.make(csvString);
                 add(account);
             }
-            scan.close();
-        } catch(FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
             result = false;
         }
         return result;
     }
 
-    /**
-     * Write accounts in this Bank to CSV file.
-     * @param filename - Name of destination CSV file.
-     */
     public boolean writeAccounts(String filename) {
-        File file = new File(filename);
-        FileWriter writer;
-        try {
-            writer = new FileWriter(file);
-            for (int idx = 0; idx < idxNextAccount; idx++) {
-                Account account = accounts[idx];
-                String accountCsv = account.toCSV();
-                writer.write(accountCsv + System.lineSeparator());
+        try (FileWriter writer = new FileWriter(new File(filename))) {
+            for (int i = 0; i < idxNextAccount; i++) {
+                writer.write(accounts[i].toCSV() + System.lineSeparator());
             }
-            writer.close();
             return true;
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Instrumentation for phase 2 unit testing
-     * @return - Array of accounts for this bank.
-     */
-    public Account[] getAccounts() { return accounts; }
-
-    /**
-     * Process transactions that are stored in a CSV file.
-     * @param filename - Points to CSV file.
-     * @return - Number of transactions that were processed.
-     * @throws IOException If auditor cannot initialize to "phase4.log" file
-     */
     public int processTransactions(String filename) {
         int numTxProcessed = 0;
         try {
             Audit audit = new Audit("phase4.log");
-            // Scanner scan;
-            try {
-                Scanner scan = new Scanner(new File(filename));
+            try (Scanner scan = new Scanner(new File(filename))) {
                 while (scan.hasNextLine()) {
                     Transaction tx = Transaction.make(scan.nextLine());
-                    int acctIdx = find(tx.getAccountID());
-                    if (acctIdx >= 0) {
-                        Account acct = accounts[acctIdx];
+                    int idx = find(tx.getAccountID());
+                    if (idx >= 0) {
+                        Account acct = accounts[idx];
                         if (tx.validate(acct, audit)) {
                             tx.execute(acct, audit);
                         }
@@ -152,19 +86,13 @@ public class Bank {
                     }
                     numTxProcessed++;
                 }
-                scan.close();
-            } catch(FileNotFoundException e) {
-                // Bad transactions tile
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             audit.close();
         } catch (IOException e) {
-            // Bad audit file
             e.printStackTrace();
         }
         return numTxProcessed;
-        // tested by testProcesTransactions{Failure,Success}
     }
-
 }
-

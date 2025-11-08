@@ -1,56 +1,38 @@
 package projects.bank;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 abstract class Account {
 
     private final String id;
     private final String ownerName;
     private double balance;
 
-    /**
-     * 
-     * @param id Unique alphanumeric id for this account.
-     * @param ownerName Name of this account's owner.
-     * @param balance Initial balance of this account.
-     * 
-     * @throws IllegalArgumentException If id is null or ownerName is null.
-     */
     protected Account(String id, String ownerName, double balance) {
-        if (id != null) {
-            this.id = id;
-        } else {
-            throw new IllegalArgumentException("id cannot be null");
+        if (id == null || id.isEmpty()) {
+            throw new IllegalArgumentException("id cannot be null or empty");
         }
-
-        if (ownerName != null) {
-            this.ownerName = ownerName;
-        } else {
-            throw new IllegalArgumentException("ownerName cannot be null");
+        if (ownerName == null || ownerName.isEmpty()) {
+            throw new IllegalArgumentException("ownerName cannot be null or empty");
         }
-        
-        this.balance = balance;
+        this.id = id;
+        this.ownerName = ownerName;
+        this.balance = round(balance);
     }
 
     public String getID() { return id; }
     public String getOwnerName() { return ownerName; }
-    public double getBalance() {return balance; }
+    public double getBalance() { return balance; }
     abstract AccountType getType();
 
-    /**
-     * Factory method for constructing an Account object from a CSV line.
-     * @param inputLine Eg, "savings,wz240833,Anna Gomez,8111.00"
-     * @return - new Account from supplied values.
-     * @throws {@code IllegalArgumentException}  if null {@code input} is null.
-     */
     public static Account make(String inputLine) {
-        if (inputLine == null) {
-            throw new IllegalArgumentException("inputLine cannot be null");
-        }
+        if (inputLine == null) throw new IllegalArgumentException("inputLine cannot be null");
         String[] tokens = inputLine.split(",");
-        // throws on invalid type
         AccountType type = AccountType.valueOf(tokens[0].toUpperCase());
         String id = tokens[1];
         String ownerName = tokens[2];
-        double balance = (double) Double.valueOf(tokens[3]);
+        double balance = Double.parseDouble(tokens[3]);
         if (type == AccountType.CHECKING) {
             return new CheckingAccount(id, ownerName, balance);
         } else {
@@ -58,10 +40,10 @@ abstract class Account {
         }
     }
 
-    @Override 
+    @Override
     public String toString() {
         return String.format(
-            "%s,%s,%s,%.2f", // format double to 2 decimal places
+            "%s,%s,%s,%.2f",
             getType().name().toLowerCase(),
             getID(),
             getOwnerName(),
@@ -69,26 +51,20 @@ abstract class Account {
         );
     }
 
-    /**
-     * CSV line holding this account's data.
-     * @return Eg, "savings,wz240833,Anna Gomez,8111.00"
-     */
     public String toCSV() { return toString(); }
 
-    /**
-     * Add amount from this account's balance.
-     * @param amount - Amount to be added.
-     */
     public void credit(double amount) {
-        balance = balance + amount;
+        if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative");
+        balance = round(balance + amount);
     }
 
-    /**
-     * Subtract amount from this account's balance.
-     * @param amount - Amount to be subtracted.
-     */
     public void debit(double amount) {
-        balance = balance - amount;
+        if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative");
+        balance = round(balance - amount);
     }
 
+    private double round(double value) {
+        BigDecimal bd = BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
 }
