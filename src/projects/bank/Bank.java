@@ -71,6 +71,7 @@ public class Bank {
     public int processTransactions(String filename) {
         int numTxProcessed = 0;
         try {
+            // Part 4: Audit object creation
             Audit audit = new Audit("phase4.log");
             try (Scanner scan = new Scanner(new File(filename))) {
                 while (scan.hasNextLine()) {
@@ -78,10 +79,12 @@ public class Bank {
                     int idx = find(tx.getAccountID());
                     if (idx >= 0) {
                         Account acct = accounts[idx];
+                        // Part 3/4: Validate before executing
                         if (tx.validate(acct, audit)) {
                             tx.execute(acct, audit);
                         }
                     } else {
+                        // Part 3/4: Account not found error
                         audit.recordNSA(tx);
                     }
                     numTxProcessed++;
@@ -89,6 +92,12 @@ public class Bank {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+            
+            // Part 5: End-of-Month Actions
+            for (int i = 0; i < idxNextAccount; i++) {
+                accounts[i].doEndOfMonthActions(audit);
+            }
+
             audit.close();
         } catch (IOException e) {
             e.printStackTrace();

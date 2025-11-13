@@ -21,7 +21,8 @@ public class Audit {
         }
     }
 
-    private void write(String s) {
+    // New public method for general logging (used by Part 5 for fees/interest)
+    public void write(String s) {
         try {
             writer.write(s + System.lineSeparator());
         } catch (IOException e) {

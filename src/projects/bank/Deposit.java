@@ -14,7 +14,7 @@ public class Deposit extends Transaction {
 
     @Override
     public boolean validate(Account account, Audit audit) {
-        return true;
+        return true; // Deposits are always valid
     }
 
     @Override

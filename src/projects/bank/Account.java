@@ -25,6 +25,9 @@ abstract class Account {
     public String getOwnerName() { return ownerName; }
     public double getBalance() { return balance; }
     abstract AccountType getType();
+    
+    // Part 5: Abstract method for end-of-month actions
+    abstract void doEndOfMonthActions(Audit audit); 
 
     public static Account make(String inputLine) {
         if (inputLine == null) throw new IllegalArgumentException("inputLine cannot be null");
@@ -64,6 +67,7 @@ abstract class Account {
     }
 
     private double round(double value) {
+        // Implementation uses BigDecimal for reliable 2-decimal rounding
         BigDecimal bd = BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }

@@ -24,7 +24,8 @@ abstract class Transaction {
         TransactionType type = TransactionType.valueOf(tokens[0].toUpperCase());
         String id = tokens[1];
         double amount = Double.parseDouble(tokens[2]);
-        if (type == TransactionType.DEPOSIT) {
+        // Note: Assumes Withdrawal is named Withdrawal, not Withdrawal
+        if (type == TransactionType.DEPOSIT) { 
             return new Deposit(id, amount);
         } else {
             return new Withdrawal(id, amount);
