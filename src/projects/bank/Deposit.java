@@ -7,14 +7,31 @@ public class Deposit extends Transaction {
     }
 
     @Override
-    public void execute(Account account, Audit audit) {
-        account.credit(getAmount());
-        audit.recordValid(this, account);
+    public boolean validate(Account account, Audit audit) {
+        if (getAmount() <= 0) {
+            audit.write(
+                account,
+                "deposit-validation",
+                getAmount(),
+                "ERROR: Cannot deposit non-positive amount"
+            );
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public boolean validate(Account account, Audit audit) {
-        return true; // Deposits are always valid
+    public void execute(Account account, Audit audit) {
+        if (validate(account, audit)) { 
+            boolean success = account.credit(getAmount());
+            
+            audit.write(
+                account, 
+                "deposit", 
+                getAmount(), 
+                success ? "SUCCESS" : "FAILURE (Internal Credit Error)"
+            );
+        }
     }
 
     @Override

@@ -2,31 +2,37 @@ package projects.bank;
 
 public class CheckingAccount extends Account {
 
-    // Part 5: Class data for penalty and threshold
     private static final double PENALTY_THRESHOLD = 500.00;
-    private static final double MONTHLY_PENALTY = 15.00; // Source: Plausible general banking fee
+    private static final double MONTHLY_PENALTY = 15.00; 
 
     public CheckingAccount(String id, String ownerName, double balance) {
         super(id, ownerName, balance);
     }
 
     @Override
-    public AccountType getType() {
-        return AccountType.CHECKING;
+    public String getAccountType() {
+        return "checking";
     }
 
     // Part 5: End-of-month action: impose penalty if balance is too low
     @Override
-    void doEndOfMonthActions(Audit audit) {
+    public void doEndOfMonthActions(Audit audit) {
         if (getBalance() < PENALTY_THRESHOLD) {
-            debit(MONTHLY_PENALTY);
-            audit.write(String.format(
-                "%s INFO: Checking fee: $%.2f deducted from account %s. Balance forward %.2f",
-                Utils.timestamp(),
+            boolean success = debit(MONTHLY_PENALTY);
+            
+            audit.write(
+                this, 
+                "monthly-fee",
                 MONTHLY_PENALTY,
-                getID(),
-                getBalance()
-            ));
+                success ? "SUCCESS" : "FAILURE (Internal Error)"
+            );
+        } else {
+             audit.write(
+                this, 
+                "monthly-review", 
+                0.0, 
+                "OK (above threshold)"
+             );
         }
     }
 }

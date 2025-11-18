@@ -1,56 +1,88 @@
 package projects.bank;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner; // Import the Scanner class
 
 public class Main {
 
     public static void main(String[] args) {
-        phase1();
-        phase2();
-        phases3And4();
-    }
+        Bank bank = new Bank();
+        Audit audit = null; 
 
-    public static void phase1() {
-        String logName = "data/phase1.log";
-        try (FileWriter writer = new FileWriter(new File(logName))) {
+        try {
+            // Part 4: Audit Initialization
+            audit = new Audit("data/bank.audit.csv"); 
+            
+            // Part 2: Load accounts
+            audit.write("Loading Accounts...");
+            bank.loadAccounts("data/accounts.csv");
+            
+            // NEW CODE: Print total count to console
+            System.out.println("\n--- Bank Simulation Output ---");
+            System.out.println("Total Accounts Loaded: " + bank.getCount());
+            audit.write("INFO: Loaded " + bank.getCount() + " accounts.");
+            // END NEW CODE
 
-            Account acct = new SavingsAccount("id1", "Owner Name", 1.0);
-            writer.write(String.format("Account setup: acct id=%s, owner=%s, balance=%.2f",
-                    acct.getID(), acct.getOwnerName(), acct.getBalance()) + System.lineSeparator());
+            // Part 3 & 4: Process transactions
+            audit.write("Processing Transactions...");
+            bank.processTransactions("data/transactions.csv", audit);
+            
+            // Part 5: End-of-month actions (Interest/Fees)
+            audit.write("Executing End-of-Month Actions (Interest/Fees)...");
+            bank.doAllEndOfMonthActions(audit);
 
-            Bank bank = new Bank();
-            int numAccounts0 = bank.getCount();
-            int findAcct0 = bank.find(acct.getID());
-
-            boolean addResult = bank.add(acct);
-            int numAccounts1 = bank.getCount();
-            int findAcct1 = bank.find(acct.getID());
-
-            writer.write(String.format("Bank init: getCount=%d, find=%d", numAccounts0, findAcct0) + System.lineSeparator());
-            writer.write(String.format("After add: result=%b, getCount=%d, find=%d", addResult, numAccounts1, findAcct1) + System.lineSeparator());
-
+            // Part 2: Save final state
+            audit.write("Writing final account state...");
+            bank.writeAccounts("data/accounts.end.csv");
+            
+            // START OF NEW CODE for Interactive Lookup
+            runInteractiveLookup(bank, audit);
+            // END OF NEW CODE
+            
         } catch (IOException e) {
+            System.err.println("Fatal error during bank operation or audit setup.");
             e.printStackTrace();
+        } finally {
+            // Part 4: Ensure close() is called
+            if (audit != null) {
+                audit.write("Bank Project Execution Completed.");
+                audit.close(); 
+            }
         }
     }
+    
+    /**
+     * Dedicated method for interactive name lookup.
+     */
+    private static void runInteractiveLookup(Bank bank, Audit audit) {
+        System.out.println("\n--- Interactive Account Lookup ---");
+        System.out.println("Enter owner name to search (or 'quit' to exit):");
 
-    public static void phase2() {
-        Bank bank = new Bank();
-        boolean result = bank.loadAccounts("data/accounts.csv");
-        System.out.println("Result of loading account: " + result);
-        System.out.println("Number of accounts: " + bank.getCount());
+        try (Scanner consoleScanner = new Scanner(System.in)) {
+            while (true) {
+                System.out.print("> Search Name: ");
+                String name = consoleScanner.nextLine().trim();
 
-        result = bank.writeAccounts("data/phase2.csv");
-        System.out.println("Result of writing account: " + result);
-    }
+                if (name.equalsIgnoreCase("quit")) {
+                    System.out.println("Exiting lookup.");
+                    break;
+                }
 
-    public static void phases3And4() {
-        Bank bank = new Bank();
-        bank.loadAccounts("data/accounts.csv");
-        int txProcessed = bank.processTransactions("data/transactions.csv");
-        bank.writeAccounts("data/accounts-Phase3Out.csv");
-        System.out.println("Number of transactions processed: " + txProcessed);
+                Account[] matches = bank.findByOwnerName(name);
+
+                if (matches.length > 0) {
+                    System.out.println("Found " + matches.length + " accounts for '" + name + "':");
+                    for (Account acct : matches) {
+                        // Print the CSV representation to show all details
+                        System.out.println("  - " + acct.toCSV());
+                    }
+                    audit.write("INFO", "lookup", 0.0, "SUCCESS: Found " + matches.length + " accounts for " + name);
+                } else {
+                    System.out.println("No accounts found for that name.");
+                    audit.write("INFO", "lookup", 0.0, "FAILURE: No accounts found for " + name);
+                }
+                System.out.println("----------------------------------");
+            }
+        }
     }
 }

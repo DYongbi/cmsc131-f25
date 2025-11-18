@@ -9,32 +9,48 @@ public class Withdrawal extends Transaction {
     }
 
     @Override
-    public void execute(Account account, Audit audit) {
-        // Only executes if validate() passed and funds were sufficient
-        account.debit(getAmount());
-        audit.recordValid(this, account);
+    public boolean validate(Account account, Audit audit) {
+        if (getAmount() <= 0) {
+            audit.write(getAccountID(), "withdrawal-validation", getAmount(), "ERROR: Invalid withdrawal amount.");
+            return false;
+        }
+        return true;
     }
 
+    // Part 5: Execution Method (Handles NSF Check and Penalty Logic)
     @Override
-    public boolean validate(Account account, Audit audit) {
-        boolean sufficientFunds = getAmount() <= account.getBalance();
-        
-        if (!sufficientFunds) {
-            audit.recordNSF(this, account);
-            
-            // Part 5: Impose $10 penalty for NSF
-            account.debit(NSF_PENALTY);
-            
-            // Log the penalty fee action
-            audit.write(String.format(
-                "%s INFO: NSF Fee: $%.2f deducted from account %s. Balance forward %.2f",
-                Utils.timestamp(),
-                NSF_PENALTY,
-                account.getID(),
-                account.getBalance()
-            ));
+    public void execute(Account account, Audit audit) {
+        if (!validate(account, audit)) {
+            return; 
         }
-        return sufficientFunds;
+
+        boolean withdrawalSuccessful = account.getBalance() >= getAmount();
+        
+        if (withdrawalSuccessful) {
+            // SUCCESS: Debit the amount and log success
+            account.debit(getAmount());
+            audit.write(account, "withdrawal", getAmount(), "SUCCESS");
+        } else {
+            // FAILURE: NSF occurred (Balance remains unchanged from withdrawal)
+
+            // 1. Log the failed withdrawal attempt
+            audit.write(
+                account, 
+                "withdrawal", 
+                getAmount(), 
+                "NSF ERROR: Withdrawal rejected (Balance unchanged)"
+            );
+
+            // 2. Impose the $10 NSF penalty
+            boolean penaltySuccess = account.debit(NSF_PENALTY); 
+            
+            audit.write(
+                account, 
+                "NSF-fee", 
+                NSF_PENALTY, 
+                penaltySuccess ? "SUCCESS: Penalty applied" : "FAILURE: Penalty rejected"
+            );
+        }
     }
 
     @Override

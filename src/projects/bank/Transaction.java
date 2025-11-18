@@ -1,6 +1,6 @@
 package projects.bank;
 
-abstract class Transaction {
+public abstract class Transaction {
 
     protected final String accountID;
     protected final double amount;
@@ -10,25 +10,36 @@ abstract class Transaction {
 
     protected Transaction(String accountID, double amount) {
         if (accountID == null) throw new IllegalArgumentException("accountID cannot be null");
-        if (amount <= 0) throw new IllegalArgumentException("amount must be positive");
         this.accountID = accountID;
         this.amount = amount;
     }
 
-    abstract void execute(Account account, Audit audit);
-    abstract boolean validate(Account account, Audit audit);
+    public abstract void execute(Account account, Audit audit);
+    public abstract boolean validate(Account account, Audit audit);
+    public abstract String toString();
 
-    protected static Transaction make(String inputLine) {
-        if (inputLine == null) throw new IllegalArgumentException("inputLine cannot be null");
-        String[] tokens = inputLine.split(",");
-        TransactionType type = TransactionType.valueOf(tokens[0].toUpperCase());
-        String id = tokens[1];
-        double amount = Double.parseDouble(tokens[2]);
-        // Note: Assumes Withdrawal is named Withdrawal, not Withdrawal
-        if (type == TransactionType.DEPOSIT) { 
-            return new Deposit(id, amount);
-        } else {
-            return new Withdrawal(id, amount);
+
+    // FIX: Factory Method required by Bank.java
+    public static Transaction create(String inputLine) {
+        if (inputLine == null || inputLine.trim().isEmpty()) return null;
+
+        try {
+            String[] tokens = inputLine.split(",");
+            if (tokens.length < 3) return null;
+
+            String typeStr = tokens[0].trim();
+            String id = tokens[1].trim();
+            double amount = Double.parseDouble(tokens[2].trim());
+
+            if (typeStr.equalsIgnoreCase("deposit")) {
+                return new Deposit(id, amount); 
+            } else if (typeStr.equalsIgnoreCase("withdrawal")) {
+                return new Withdrawal(id, amount);
+            } else {
+                return null; 
+            }
+        } catch (Exception e) {
+            return null; 
         }
     }
 }
